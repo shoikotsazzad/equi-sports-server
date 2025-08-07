@@ -15,31 +15,45 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
+
+
+        const equipmentCollection = client.db("sportsEquipment").collection("equipment");
+
+        app.post('/sports', async (req, res) => {
+            const newEquip = req.body;
+            console.log(newEquip);
+            const result = await equipmentCollection.insertOne(newEquip);
+            res.send(result);
+        });
+
+
+
+        app.get('/', (req, res) => {
+            res.send('Sports Equipment Server is running');
+        })
+
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } catch (error) {
+        // Ensures that the client will close when you finish/error
+        console.error("MongoDB Connection Error:", error);
+    }
 }
-run().catch(console.dir);
+run();
 
 
-app.get('/', (req, res) => {
-    res.send('Sports Equipment Server is running');
-})
 
 app.listen(port, () => {
     console.log(`Server is running on port :${port}`);
