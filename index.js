@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config(); // Load environment variables from .env file
 const app = express();
 const port = 4000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 app.use(cors());
 app.use(express.json());
@@ -30,6 +30,14 @@ async function run() {
 
         const equipmentCollection = client.db("sportsEquipment").collection("equipment");
 
+
+        app.get('/sports',async(req,res)=>{
+            const cursor = equipmentCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+
         app.post('/sports', async (req, res) => {
             const newEquip = req.body;
             console.log(newEquip);
@@ -37,6 +45,39 @@ async function run() {
             res.send(result);
         });
 
+        app.put('/sports/:id', async(req, res) =>{
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const options = { upsert: true };
+            const updatedEquip = req.body;
+            const equipments = {
+                $set: {
+                item: updatedEquip.item,
+                category: updatedEquip.category,
+                description: updatedEquip.description,
+                price: updatedEquip.price,
+                rating: updatedEquip.rating,
+                stock: updatedEquip.stock,
+                photo: updatedEquip.photo,
+                }
+            }
+            const result = await equipmentCollection.updateOne(filter, equipments, options);
+            res.send(result);
+        })
+
+        app.delete('/sports/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await equipmentCollection.deleteOne(query);
+            res.send(result);
+            
+        });
+        app.get('/sports/:id', async (req, res) =>{
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await equipmentCollection.findOne(query);
+            res.send(result);
+        })
 
 
         app.get('/', (req, res) => {
