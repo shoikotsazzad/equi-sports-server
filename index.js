@@ -29,11 +29,19 @@ async function run() {
 
 
         const equipmentCollection = client.db("sportsEquipment").collection("equipment");
+        const userCollection =client.db("sportsEquipment").collection("users");
 
 
         app.get('/sports',async(req,res)=>{
             const cursor = equipmentCollection.find();
             const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.get('/sports/:id', async (req, res) =>{
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await equipmentCollection.findOne(query);
             res.send(result);
         })
 
@@ -72,10 +80,38 @@ async function run() {
             res.send(result);
             
         });
-        app.get('/sports/:id', async (req, res) =>{
+
+        //Users related APIs
+        app.get('/users', async(req, res) =>{
+            const cursor = userCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.post('/users',async(req, res) =>{
+            const newUser = req.body;
+            console.log('creating new user', newUser);
+            const result = await userCollection.insertOne(newUser);
+            res.send(result);
+
+        })
+
+        app.patch('/users', async (req, res) => {
+            const email = req.body.email;
+            const filter = {email}
+            const updatedDoc = {
+                $set: {
+                    lastSignInTime: req.body.lastSignInTime,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+        
+        app.delete('/users/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
-            const result = await equipmentCollection.findOne(query);
+            const result = await userCollection.deleteOne(query);
             res.send(result);
         })
 
